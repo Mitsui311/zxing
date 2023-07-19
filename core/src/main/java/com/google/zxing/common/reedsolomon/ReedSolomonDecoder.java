@@ -16,6 +16,8 @@
 
 package com.google.zxing.common.reedsolomon;
 
+import java.util.Arrays;
+
 /**
  * <p>Implements Reed-Solomon decoding, as the name implies.</p>
  *
@@ -89,9 +91,12 @@ public final class ReedSolomonDecoder {
     GenericGFPoly sigma = sigmaOmega[0];
     GenericGFPoly omega = sigmaOmega[1];
     int[] errorLocations = findErrorLocations(sigma);
+    System.out.println("Errorlocation" + Arrays.toString(errorLocations));
     int[] errorMagnitudes = findErrorMagnitudes(omega, errorLocations);
     for (int i = 0; i < errorLocations.length; i++) {
       int position = received.length - 1 - field.log(errorLocations[i]);
+      System.out.println("field.log_EL:" + field.log(errorLocations[i]));
+      System.out.println("Errorposition:" + position);
       if (position < 0) {
         throw new ReedSolomonException("Bad error location");
       }
@@ -99,6 +104,42 @@ public final class ReedSolomonDecoder {
     }
     return errorLocations.length;
   }
+
+  // make erasedecode
+  public void erasedecode(int[] received,int[] eraseposition, int twoS) throws ReedSolomonException {
+    GenericGFPoly poly = new GenericGFPoly(field, received);
+
+    //// 消失位置多項式を構成
+    int erasenum = eraseposition.length;
+
+    //消失位置多項式の因数を格納
+    int[][] erasepoly_factor = new int[erasenum][2];
+
+    //消失位置は反転 exp..受信語の長さが10,消失位置が0ならば0→9
+    //シンドロームが反転して計算されるため 
+    int eraseposition_reverse;
+
+    //消失位置のべき乗を根に持つ因数を生成し逐次的にかける
+    int[] one = {1};
+    GenericGFPoly erasepoly = new GenericGFPoly(field, one);
+    for(int i = 0; i < erasenum; i++){
+      eraseposition_reverse = received.length - 1 - eraseposition[i];
+      int eraseposition_inverse =  field.getSize() - 1 - eraseposition_reverse;
+      erasepoly_factor[i][0] = 1;
+      erasepoly_factor[i][1] = field.exp(eraseposition_inverse);
+      GenericGFPoly poly_factor = new GenericGFPoly(field, erasepoly_factor[i]);
+      erasepoly = erasepoly.multiply(poly_factor);
+    }
+    int[] eraseLocations = findErrorLocations(erasepoly);
+    System.out.println("eraselocation" + Arrays.toString(eraseLocations));
+
+
+
+
+    int[] syndromeCoefficients = new int[twoS];
+    
+  }
+
 
   private GenericGFPoly[] runEuclideanAlgorithm(GenericGFPoly a, GenericGFPoly b, int R)
       throws ReedSolomonException {
