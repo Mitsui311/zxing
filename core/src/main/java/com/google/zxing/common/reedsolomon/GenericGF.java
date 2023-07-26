@@ -145,10 +145,25 @@ public final class GenericGF {
    * @return product of a and b in GF(size)
    */
   int multiply(int a, int b) {
+    
     if (a == 0 || b == 0) {
       return 0;
     }
     return expTable[(logTable[a] + logTable[b]) % (size - 1)];
+  }
+
+  //@return b/a
+  int divide (int a, int b){
+    if (a == 0) {
+      throw new ArithmeticException();
+    }
+    if(b == 0) return 0;
+    
+    if(logTable[b] >= logTable[a]){
+      return expTable[(logTable[b] - logTable[a]) % (size - 1)];
+    }else{
+      return expTable[(size - 1 + logTable[b] - logTable[a]) % (size - 1)];
+    }
   }
 
   public int getSize() {

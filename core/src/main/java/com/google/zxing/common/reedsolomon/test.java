@@ -11,7 +11,7 @@ public class test {
     {
 
         //符号化したいシンボル列と符号語の誤り訂正可能数を指定
-        int[] Data = {1 ,2 ,3 ,4 ,5 ,6};
+        int[] Data = {111 ,24 ,9 ,49 ,152 ,221};
         int Errornum = 2;
         int Two_Errornum = 2 * Errornum;
 
@@ -34,10 +34,11 @@ public class test {
         }
         ErrorINencode[0] = 10;
         ErrorINencode[1] = 10;
-        // ErrorINencode[2] = 10;
+        ErrorINencode[4] = 10;
+        ErrorINencode[5] = 33;
         System.out.println("errorin" + Arrays.toString(ErrorINencode));
 
-        int[] eraseposition = {0, 1};
+        int[] eraseposition = {0, 1, 4, 5};
 
 
         //復号

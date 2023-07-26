@@ -91,12 +91,9 @@ public final class ReedSolomonDecoder {
     GenericGFPoly sigma = sigmaOmega[0];
     GenericGFPoly omega = sigmaOmega[1];
     int[] errorLocations = findErrorLocations(sigma);
-    System.out.println("Errorlocation" + Arrays.toString(errorLocations));
     int[] errorMagnitudes = findErrorMagnitudes(omega, errorLocations);
     for (int i = 0; i < errorLocations.length; i++) {
       int position = received.length - 1 - field.log(errorLocations[i]);
-      System.out.println("field.log_EL:" + field.log(errorLocations[i]));
-      System.out.println("Errorposition:" + position);
       if (position < 0) {
         throw new ReedSolomonException("Bad error location");
       }
@@ -109,7 +106,22 @@ public final class ReedSolomonDecoder {
   public void erasedecode(int[] received,int[] eraseposition, int twoS) throws ReedSolomonException {
     GenericGFPoly poly = new GenericGFPoly(field, received);
 
-    //// 消失位置多項式を構成
+    ////シンドロームの計算
+    int[] syndromeCoefficients = new int[twoS];
+    boolean noError = true;
+    for (int i = 0; i < twoS; i++) {
+      int eval = poly.evaluateAt(field.exp(i + field.getGeneratorBase()));
+      syndromeCoefficients[syndromeCoefficients.length - 1 - i] = eval;
+      if (eval != 0) {
+        noError = false;
+      }
+    }
+    if (noError) {
+      System.out.println("noError!");
+    }
+    GenericGFPoly syndrome = new GenericGFPoly(field, syndromeCoefficients);
+
+    //// 消失位置多項式λを構成
     int erasenum = eraseposition.length;
 
     //消失位置多項式の因数を格納
@@ -121,22 +133,68 @@ public final class ReedSolomonDecoder {
 
     //消失位置のべき乗を根に持つ因数を生成し逐次的にかける
     int[] one = {1};
-    GenericGFPoly erasepoly = new GenericGFPoly(field, one);
+    GenericGFPoly lamda = new GenericGFPoly(field, one);
     for(int i = 0; i < erasenum; i++){
       eraseposition_reverse = received.length - 1 - eraseposition[i];
-      int eraseposition_inverse =  field.getSize() - 1 - eraseposition_reverse;
-      erasepoly_factor[i][0] = 1;
-      erasepoly_factor[i][1] = field.exp(eraseposition_inverse);
+      erasepoly_factor[i][0] = field.exp(eraseposition_reverse);
+      erasepoly_factor[i][1] = 1;
       GenericGFPoly poly_factor = new GenericGFPoly(field, erasepoly_factor[i]);
-      erasepoly = erasepoly.multiply(poly_factor);
+      lamda = lamda.multiply(poly_factor);
     }
-    int[] eraseLocations = findErrorLocations(erasepoly);
-    System.out.println("eraselocation" + Arrays.toString(eraseLocations));
 
+    ////シンドローム×消失位置多項式(S(x)×λ(x):2t次以上の項は切り捨て)を計算
+    GenericGFPoly sramda = new GenericGFPoly(field, one);
+    sramda = sramda.multiply(syndrome);
+    sramda = sramda.multiply(lamda);
+    int[] sramda_array = new int[syndromeCoefficients.length];
+    for(int i = 0; i < sramda_array.length; i++){
+      sramda_array[i] = sramda.getCoefficient(sramda_array.length - 1 - i);
+    }
 
+    GenericGFPoly sramda_unnder2t = new GenericGFPoly(field, sramda_array);
 
+    ////ユークリッドアルゴリズムによって誤り位置多項式σと誤り、消失の大きさに関わるψを求める
+    GenericGFPoly[] sigmapsi =
+        runEuclideanAlgorithm(field.buildMonomial(twoS, 1), sramda_unnder2t, twoS + erasenum);
+    GenericGFPoly sigma = sigmapsi[0];
+    GenericGFPoly psi = sigmapsi[1];
 
-    int[] syndromeCoefficients = new int[twoS];
+    int[] errorLocations = findErrorLocations(sigma);
+    int[] eraseLocations = findErrorLocations(lamda);
+  
+    
+    int[] errorMagnitudes = findErrorMagnitudes(psi, errorLocations);
+    for(int i = 0; i < errorMagnitudes.length; i++){
+      int lamda_inverse = lamda.evaluateAt(field.inverse(errorLocations[i]));
+      errorMagnitudes[i] = field.divide(lamda_inverse, errorMagnitudes[i]);
+    }
+
+    int[] eraseMagnitudes = findErrorMagnitudes(psi, eraseLocations);
+    for(int i = 0; i < eraseMagnitudes.length; i++){
+      int sigma_inverse = sigma.evaluateAt(field.inverse(eraseLocations[i]));
+      eraseMagnitudes[i] = field.divide(sigma_inverse, eraseMagnitudes[i]);
+    }
+  
+    
+    for (int i = 0; i < errorLocations.length; i++) {
+      int errorpos = received.length - 1 - field.log(errorLocations[i]);
+      if (errorpos < 0) {
+        throw new ReedSolomonException("Bad error location");
+      }
+      received[errorpos] = GenericGF.addOrSubtract(received[errorpos], errorMagnitudes[i]);
+    }
+
+    for (int i = 0; i < eraseLocations.length; i++) {
+      int erasepos = received.length - 1 - field.log(eraseLocations[i]);
+      if (erasepos < 0) {
+        throw new ReedSolomonException("Bad error location");
+      }
+      received[erasepos] = GenericGF.addOrSubtract(received[erasepos], eraseMagnitudes[i]);
+    }
+  
+    
+
+    
     
   }
 
