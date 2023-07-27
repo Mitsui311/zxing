@@ -153,15 +153,17 @@ public final class GenericGF {
   }
 
   //@return b/a
-  int divide (int a, int b){
+  int divide(int a, int b) {
     if (a == 0) {
       throw new ArithmeticException();
     }
-    if(b == 0) return 0;
+    if (b == 0) {
+      return 0;
+    } 
     
-    if(logTable[b] >= logTable[a]){
+    if (logTable[b] >= logTable[a]) {
       return expTable[(logTable[b] - logTable[a]) % (size - 1)];
-    }else{
+    } else {
       return expTable[(size - 1 + logTable[b] - logTable[a]) % (size - 1)];
     }
   }

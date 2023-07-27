@@ -18,7 +18,7 @@
   <modelVersion>4.0.0</modelVersion>
 
   <artifactId>core</artifactId>
-  <version>3.5.6-SNAPSHOT</version>
+  <version>3.5.2.1-CUSTOM</version>
   <packaging>jar</packaging>
 
   <dependencies>

@@ -16,8 +16,6 @@
 
 package com.google.zxing.common.reedsolomon;
 
-import java.util.Arrays;
-
 /**
  * <p>Implements Reed-Solomon decoding, as the name implies.</p>
  *
@@ -103,7 +101,7 @@ public final class ReedSolomonDecoder {
   }
 
   // make erasedecode
-  public void erasedecode(int[] received,int[] eraseposition, int twoS) throws ReedSolomonException {
+  public int erasedecodeWithECCount(int[] received,int[] eraseposition, int twoS) throws ReedSolomonException {
     GenericGFPoly poly = new GenericGFPoly(field, received);
 
     ////シンドロームの計算
@@ -134,7 +132,7 @@ public final class ReedSolomonDecoder {
     //消失位置のべき乗を根に持つ因数を生成し逐次的にかける
     int[] one = {1};
     GenericGFPoly lamda = new GenericGFPoly(field, one);
-    for(int i = 0; i < erasenum; i++){
+    for (int i = 0; i < erasenum; i++) {
       eraseposition_reverse = received.length - 1 - eraseposition[i];
       erasepoly_factor[i][0] = field.exp(eraseposition_reverse);
       erasepoly_factor[i][1] = 1;
@@ -147,7 +145,7 @@ public final class ReedSolomonDecoder {
     sramda = sramda.multiply(syndrome);
     sramda = sramda.multiply(lamda);
     int[] sramda_array = new int[syndromeCoefficients.length];
-    for(int i = 0; i < sramda_array.length; i++){
+    for (int i = 0; i < sramda_array.length; i++) {
       sramda_array[i] = sramda.getCoefficient(sramda_array.length - 1 - i);
     }
 
@@ -164,13 +162,13 @@ public final class ReedSolomonDecoder {
   
     
     int[] errorMagnitudes = findErrorMagnitudes(psi, errorLocations);
-    for(int i = 0; i < errorMagnitudes.length; i++){
+    for (int i = 0; i < errorMagnitudes.length; i++) {
       int lamda_inverse = lamda.evaluateAt(field.inverse(errorLocations[i]));
       errorMagnitudes[i] = field.divide(lamda_inverse, errorMagnitudes[i]);
     }
 
     int[] eraseMagnitudes = findErrorMagnitudes(psi, eraseLocations);
-    for(int i = 0; i < eraseMagnitudes.length; i++){
+    for (int i = 0; i < eraseMagnitudes.length; i++) {
       int sigma_inverse = sigma.evaluateAt(field.inverse(eraseLocations[i]));
       eraseMagnitudes[i] = field.divide(sigma_inverse, eraseMagnitudes[i]);
     }
@@ -192,8 +190,7 @@ public final class ReedSolomonDecoder {
       received[erasepos] = GenericGF.addOrSubtract(received[erasepos], eraseMagnitudes[i]);
     }
   
-    
-
+    return errorLocations.length;
     
     
   }
