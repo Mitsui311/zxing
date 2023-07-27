@@ -181,13 +181,13 @@ public final class Decoder {
     int errorsCorrected = 0;
     try {
       ////通常の復号
-      errorsCorrected = rsDecoder.decodeWithECCount(codewordsInts, codewordBytes.length - numDataCodewords);
+      //errorsCorrected = rsDecoder.decodeWithECCount(codewordsInts, codewordBytes.length - numDataCodewords);
       
       ////消失訂正復号
       //消失位置（消失位置は適宜取ってくる）
-      // int[] eraseposition = {};
-      // errorsCorrected = 
-      // rsDecoder.erasedecodeWithECCount(codewordsInts, eraseposition, codewordBytes.length - numDataCodewords);
+      int[] eraseposition = {};
+      errorsCorrected = 
+      rsDecoder.erasedecodeWithECCount(codewordsInts, eraseposition, codewordBytes.length - numDataCodewords);
 
     } catch (ReedSolomonException ignored) {
       throw ChecksumException.getChecksumInstance();
