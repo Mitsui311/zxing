@@ -115,7 +115,7 @@ public final class ReedSolomonDecoder {
       }
     }
     if (noError) {
-      System.out.println("noError!");
+      return 0;
     }
     GenericGFPoly syndrome = new GenericGFPoly(field, syndromeCoefficients);
 
@@ -145,9 +145,12 @@ public final class ReedSolomonDecoder {
     sramda = sramda.multiply(syndrome);
     sramda = sramda.multiply(lamda);
     int[] sramda_array = new int[syndromeCoefficients.length];
+    System.out.print("sramda,sramdaarray:" + sramda.getDegree());
     for (int i = 0; i < sramda_array.length; i++) {
+      // System.out.print(sramda.getDegree() + sramda_array.length - 1 - i);
       sramda_array[i] = sramda.getCoefficient(sramda_array.length - 1 - i);
     }
+    System.out.println();
 
     GenericGFPoly sramda_unnder2t = new GenericGFPoly(field, sramda_array);
 
