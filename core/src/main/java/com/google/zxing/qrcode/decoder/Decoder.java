@@ -181,7 +181,11 @@ public final class Decoder {
     int errorsCorrected = 0;
     try {
       ////通常の復号
+<<<<<<< HEAD
+      // errorsCorrected = rsDecoder.decodeWithECCount(codewordsInts, codewordBytes.length - numDataCodewords);
+=======
       //errorsCorrected = rsDecoder.decodeWithECCount(codewordsInts, codewordBytes.length - numDataCodewords);
+>>>>>>> 5bd65c2554b71fcd2dab1674b68af664a079b328
       
       ////消失訂正復号
       //消失位置（消失位置は適宜取ってくる）
